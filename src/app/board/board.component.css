@@ -1,0 +1,108 @@
+.board{
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 8%;
+    width: 560px;
+    height: 560px;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.rotate{
+    transform: rotate(180deg);
+}
+
+.square{
+    height: 70px;
+    width: 70px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+}
+
+.green-dot{
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: rgba(20,85,30,.3);
+}
+
+.row{
+    display:flex;
+    flex-direction: row;
+}
+
+.green{
+    background-color: #646F40;
+}
+
+.black{
+    background-color: #B58863;
+}
+
+.white{
+    background-color: #F0D9B5;
+}
+
+[class="square white green"]{
+    background-color: #646F40;
+}
+
+[class="square black green"]{
+    background-color: #646F40;
+}
+
+[class="square white red"]{
+    background-color: red;
+}
+
+[class="square black red"]{
+    background-color: red;
+}
+
+.image{
+    pointer-events: none;
+}
+
+.last-move{
+    background-color: rgba(155,199,0,.41);
+}
+
+.check{
+    background: radial-gradient(ellipse at center,
+     rgb(255, 0, 0) 0%, 
+     rgb(231, 0, 0) 25%, 
+     rgba(169, 0, 0, 0) 89%, 
+     rgba(158, 0, 0, 0) 100%);
+}
+
+[class="square last-move black"]{
+   background-color: rgba(155,199,0,.41);
+}
+[class="square last-move white"]{
+    background-color: rgba(155,199,0,.41);
+ }
+
+ .selected{
+    background-color: rgba(20, 85, 30, .5);
+ }
+ [class="square black last-move red"]{
+    background-color: red;
+ }
+
+ [class="square white last-move red"]{
+    background-color: red;
+ }
+
+ [class="square white check"]{
+    background-color: #F0D9B5;
+ }
+
+ [class="square black check"]{
+    background-color: #B58863;
+ }
+

@@ -1,0 +1,39 @@
+<div class="board">
+  <div
+    class="row"
+    *ngFor="let row of this.matrix; index as i"
+    #row
+    id="{{ 'row-' + i.toString() }}"
+  >
+    <div
+      class="square"
+      #box
+      *ngFor="let square of row; index as j"
+      id="{{ 'box-' + i.toString() + j.toString() }}"
+      [ngClass]="{
+        'black': (i + j) % 2 != 0,
+        'white': (i + j) % 2 == 0,
+        'selected':
+          this.SelectedSquare && this.matrix[i][j] === this.SelectedSquare,
+        'last-move': this.isArrayInMatrix([i,j], this.LastMoves),
+        'check': this.isKingInCheck(this.CurrentPlayer) && this.isInstanceOfKing(i,j),
+      }"
+      (click)="Move(i, j)"
+    >
+      <img *ngIf="square" [src]="square.icon" [alt]="'piece'" class="image" />
+    </div>
+  </div>
+</div>
+
+<button (click)="this.ClearBoardIMGS()" style="width: 100px; height: 50px">
+  Clear Board IMGs
+</button>
+
+<button
+  (click)="
+    this.ColorLastMove()
+  "
+  style="width: 100px; height: 50px"
+>
+  Display matrix elements
+</button>

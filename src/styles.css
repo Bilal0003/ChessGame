@@ -1,1 +1,7 @@
 /* You can add global styles to this file, and also import other style files */
+body{
+    margin: 0;
+    background-color: #151515;
+    color: white;
+    font-family: Inter var, ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji
+}
