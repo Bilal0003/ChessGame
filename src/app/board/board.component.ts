@@ -20,6 +20,8 @@ import { King } from '../pieces/king';
 import { Queen } from '../pieces/queen';
 import { pipe, timeInterval } from 'rxjs';
 import { ControlContainer } from '@angular/forms';
+import { ThisReceiver } from '@angular/compiler';
+import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
 
 @Component({
   selector: 'app-board',
@@ -34,11 +36,15 @@ export class BoardComponent implements AfterViewInit, OnInit {
   public matrix!: (Piece | null)[][];
   private dim: number = 8;
   public CurrentPlayer: string = 'White';
+  public PreviousPlayer: string | undefined;
   public SelectedSquare!: Piece | null;
   public SelecetedSquareDirections!: any[];
   public MovesHistory: any[] = [];
   public LastMoves: any[] = [];
   public CantMove: boolean = false;
+  public CheckMate: boolean = false;
+  public Check: boolean = false;
+  public WinnerMsg: String | undefined;
 
   constructor(
     private renderer: Renderer2,
@@ -63,8 +69,8 @@ export class BoardComponent implements AfterViewInit, OnInit {
 
   ngOnInit(): void {
     this.InitializeBoard();
+
     /* this.matrix[5][5] = new Pawn(5, 5, 'Black'); */
-    console.log(this.matrix);
   }
 
   isArrayInMatrix(array: number[], matrix: [][]): boolean {
@@ -91,10 +97,9 @@ export class BoardComponent implements AfterViewInit, OnInit {
     this.ClearGreenDotsandRed();
   }
 
-  // find a way to check if position leaves king in check, and do not append it if thats the case
-  getSafeSquares(x: number, y: number): any[] {
+  getSafeSquares(x: number, y: number): number[][] {
     let piece: Piece | null = this.getPiece(x, y);
-    let SafeSquares = [];
+    let SafeSquares: number[][] = [];
     if (piece) {
       for (let [dx, dy] of piece.Directions) {
         var [newX, newY] = [x + dx, y + dy];
@@ -156,18 +161,15 @@ export class BoardComponent implements AfterViewInit, OnInit {
               SafeSquares.push([newX, newY]);
           }
         }
+        for (let [X, Y] of SafeSquares) {
+          if (!this.isSquareSafeAfterMove(piece, x, y, X, Y)) {
+            SafeSquares = SafeSquares.filter(
+              (square) => square[0] !== X || square[1] !== Y
+            );
+          }
+        }
       }
     }
-
-    for (let [X, Y] of SafeSquares) {
-      if (!this.isSquareSafeAfterMove(x, y, X, Y)) {
-        SafeSquares = SafeSquares.filter(
-          (square) => square[0] !== X || square[1] !== Y
-        );
-      }
-    }
-
-    console.log(SafeSquares);
 
     return SafeSquares;
   }
@@ -189,23 +191,18 @@ export class BoardComponent implements AfterViewInit, OnInit {
       this.SelectedSquare.X,
       this.SelectedSquare.Y
     );
+
     this.HighlightPossibleSquares(this.SelecetedSquareDirections);
   }
 
   Move(x: number, y: number): void {
+    if (this.CheckMate) return;
     this.MoveListener(x, y);
 
     if (this.SelectedSquare) {
       this.MoveMaker(this.SelectedSquare.X, this.SelectedSquare.Y, x, y);
-      console.log(
-        'selected Square moves and directions:',
-        this.SelectedSquare,
-        this.SelecetedSquareDirections,
-        'player:',
-        this.CurrentPlayer,
-        this.matrix
-      );
     }
+    this.CheckMate = this.isCheckMate(this.CurrentPlayer);
   }
 
   // the sole purpose of this function is to make a move
@@ -216,7 +213,6 @@ export class BoardComponent implements AfterViewInit, OnInit {
     RecieverY: number
   ): void {
     if (!this.SelectedSquare) return;
-    console.log(this.isKingInCheck(this.CurrentPlayer));
 
     let attacker = this.SelectedSquare;
     let reciever: Piece | null = this.matrix[RecieverX][RecieverY];
@@ -231,7 +227,7 @@ export class BoardComponent implements AfterViewInit, OnInit {
         this.SelecetedSquareDirections
       )
     ) {
-      let isSafeAfterMove = this.isSquareSafeAfterMove(
+      /* let isSafeAfterMove = this.isSquareSafeAfterMove(
         AttackerX,
         AttackerY,
         RecieverX,
@@ -242,7 +238,7 @@ export class BoardComponent implements AfterViewInit, OnInit {
         // implement it
 
         return;
-      }
+      } */
       this.MovesHistory.push([AttackerX, AttackerY], [RecieverX, RecieverY]);
       this.LastMoves = [
         [AttackerX, AttackerY],
@@ -262,6 +258,8 @@ export class BoardComponent implements AfterViewInit, OnInit {
 
       Audio();
       /* this.DisplayBoard(); */
+      /* this.CheckMate = this.isCheckMate(this.CurrentPlayer); */
+
       this.CurrentPlayer = this.CurrentPlayer == 'Black' ? 'White' : 'Black';
       this.SelectedSquare = null;
       this.SelecetedSquareDirections = [];
@@ -269,8 +267,6 @@ export class BoardComponent implements AfterViewInit, OnInit {
       this.ClearGreenDotsandRed();
     }
   }
-
-  CantMoveFunc() {}
 
   PlayMove() {
     let move = new Audio('assets/Move.mp3');
@@ -285,7 +281,6 @@ export class BoardComponent implements AfterViewInit, OnInit {
   HighlightPossibleSquares(SafeSquares: number[][]) {
     this.ClearGreenDotsandRed();
     for (let [x, y] of SafeSquares) {
-      console.log('SafeSquares', x, y);
       let piece = this.matrix[x][y];
       if (piece) {
         if (piece.Color !== this.CurrentPlayer) {
@@ -344,17 +339,20 @@ export class BoardComponent implements AfterViewInit, OnInit {
   }
 
   isSquareSafeAfterMove(
+    piece: Piece | null,
     x: number,
     y: number,
     prevX: number,
     prevY: number
   ): boolean {
-    let piece: Piece | null = this.SelectedSquare;
+    /* let piece: Piece | null = this.SelectedSquare; */
 
     /* let pieceSafeSquares = this.getSafeSquares(piece!); */
 
     // store Prev in temporary variable
     let temp: Piece | null = this.matrix[prevX][prevY];
+
+    if (temp?.Color === piece?.Color) return false;
     // simulate move
     this.matrix[prevX][prevY] = piece;
     this.matrix[x][y] = null;
@@ -399,6 +397,7 @@ export class BoardComponent implements AfterViewInit, OnInit {
             if (piece instanceof Pawn && y === 0) continue;
             if (!attackedPiece || attackedPiece.Color !== color) continue;
             if (attackedPiece instanceof King && attackedPiece?.Color === color)
+              /* this.Check = true; */
               return true;
           }
           if (
@@ -412,6 +411,7 @@ export class BoardComponent implements AfterViewInit, OnInit {
                 attackedPiece instanceof King &&
                 attackedPiece?.Color === color
               )
+                /* this.Check = true; */
                 return true;
 
               if (attackedPiece) break;
@@ -422,7 +422,24 @@ export class BoardComponent implements AfterViewInit, OnInit {
         }
       }
     }
+    /* this.Check = false; */
+
     return false;
+  }
+
+  isCheckMate(color: string): boolean {
+    // travres all current player piecies, get all the safe squares, if player has no safe squares then checkmate.
+    for (let i = 0; i < this.dim; i++) {
+      for (let j = 0; j < this.dim; j++) {
+        let piece: Piece | null = this.matrix[i][j];
+        // travese only allied pieces
+        if (!piece || piece.Color !== color) continue;
+        const pieceSafeSquares = this.getSafeSquares(i, j);
+        if (pieceSafeSquares.length) return false;
+      }
+    }
+    this.PreviousPlayer = this.CurrentPlayer === 'White' ? 'Black' : 'White';
+    return true;
   }
 
   ngAfterViewInit(): void {
