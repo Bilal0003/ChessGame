@@ -106,3 +106,22 @@
     background-color: #B58863;
  }
 
+ .players{
+    display: flex;
+    flex-direction: row;
+    border: 1px red solid;
+    width: fit-content;
+    height: auto;
+    margin: 20px;
+    margin-left: auto;
+    margin-right: auto;
+ }
+
+ .player{
+    padding: 10px;
+ }
+
+.WinMsg{
+    position: relative;
+    text-align: center;
+}

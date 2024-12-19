@@ -1,3 +1,4 @@
+<h2 class="WinMsg" *ngIf="this.CheckMate">Check Mate {{ this.PreviousPlayer }} won</h2>
 <div class="board">
   <div
     class="row"
@@ -24,16 +25,8 @@
     </div>
   </div>
 </div>
+<div class="players">
+  <h2 class="player">White</h2>
+  <h2 class="player">Black</h2>
+</div>
 
-<button (click)="this.ClearBoardIMGS()" style="width: 100px; height: 50px">
-  Clear Board IMGs
-</button>
-
-<button
-  (click)="
-    this.ColorLastMove()
-  "
-  style="width: 100px; height: 50px"
->
-  Display matrix elements
-</button>
