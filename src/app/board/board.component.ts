@@ -18,7 +18,7 @@ import { Knight } from '../pieces/knight';
 import { Fou } from '../pieces/fou';
 import { King } from '../pieces/king';
 import { Queen } from '../pieces/queen';
-import { pipe, timeInterval } from 'rxjs';
+import { last, pipe, timeInterval } from 'rxjs';
 import { ControlContainer } from '@angular/forms';
 import { ThisReceiver } from '@angular/compiler';
 import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
@@ -78,7 +78,7 @@ export class BoardComponent implements AfterViewInit, OnInit {
   }
 
   ColorLastMove() {
-    if (this.MovesHistory.length === 0) return;
+    if (!this.MovesHistory.length) return;
     let move1 = this.MovesHistory.at(-2);
     let move2 = this.MovesHistory.at(-1);
     let [x1, y1] = [move1[0], move1[1]];
@@ -122,16 +122,22 @@ export class BoardComponent implements AfterViewInit, OnInit {
             ) {
               continue;
             }
+            // check for en passant by checking if there is a pawn to the left or right
+            if (this.CanEnPassantCapture(piece, x, y)) {
+              SafeSquares.push([
+                x + (piece.Color === 'White' ? -1 : 1),
+                this.MovesHistory.slice(-1)[0].at(1),
+              ]);
+            }
+            // limit pawn movement after first move
+            if (piece.hasMoved && Math.abs(dx) == 2) continue;
             // check if target position is in the latteral attack directions of pawn and its an enemy color
             if (dy !== 0 && target && target.Color !== piece.Color) {
               SafeSquares.push([newX, newY]);
             }
-            /* if ((dx === 2 || dx === 1) && target) continue; */
+
             // check if the spot is empty and make sure its not in latteral i.e only front
-            else if (
-              !target &&
-              !this.isArrayInMatrix([dx, dy], piece.AttackDirections)
-            ) {
+            else if (!target && Math.abs(dy) !== 1) {
               SafeSquares.push([newX, newY]);
             }
           } else {
@@ -161,6 +167,7 @@ export class BoardComponent implements AfterViewInit, OnInit {
               SafeSquares.push([newX, newY]);
           }
         }
+        // Exclude all squares that would leave king in check
         for (let [X, Y] of SafeSquares) {
           if (!this.isSquareSafeAfterMove(piece, x, y, X, Y)) {
             SafeSquares = SafeSquares.filter(
@@ -172,6 +179,31 @@ export class BoardComponent implements AfterViewInit, OnInit {
     }
 
     return SafeSquares;
+  }
+
+  CanEnPassantCapture(pawn: Pawn, x: number, y: number): boolean {
+    if (!this.MovesHistory.length) return false;
+    const lastArray = this.MovesHistory.slice(-1);
+    const b4LastArray = this.MovesHistory.slice(-2, -1);
+
+    const [lastX, lastY] = lastArray[0];
+    const [CurrX, CurrY] = b4LastArray[0];
+
+    const LastPiece = this.getPiece(lastX, lastY);
+    const b4LastPiece = this.getPiece(CurrX, CurrY);
+    if (
+      !(LastPiece instanceof Pawn) ||
+      pawn.color !== this.CurrentPlayer ||
+      Math.abs(lastX - CurrX) !== 2 ||
+      lastX !== x ||
+      Math.abs(y - CurrY) !== 1
+    )
+      return false;
+
+    const PawnNewX = x + (this.CurrentPlayer === 'White' ? -1 : 1);
+    const PawnNewY = lastY;
+
+    return this.isSquareSafeAfterMove(pawn, x, y, PawnNewX, PawnNewY);
   }
 
   MoveListener(x: number, y: number) {
@@ -253,10 +285,11 @@ export class BoardComponent implements AfterViewInit, OnInit {
 
       if (attacker instanceof Pawn) {
         attacker.hasMoved = true;
-        attacker.updateDirections();
+        /* attacker.updateDirections(); */
       }
 
       Audio();
+      console.log(this.matrix);
       /* this.DisplayBoard(); */
       /* this.CheckMate = this.isCheckMate(this.CurrentPlayer); */
 
