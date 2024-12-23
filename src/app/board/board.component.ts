@@ -206,6 +206,29 @@ export class BoardComponent implements AfterViewInit, OnInit {
     return this.isSquareSafeAfterMove(pawn, x, y, PawnNewX, PawnNewY);
   }
 
+  HandleUnusualMoves(
+    piece: Piece,
+    prevX: number,
+    prevY: number,
+    newX: number,
+    newY: number
+  ) {
+    if (!this.LastMoves.length) return;
+    const lastPiece = this.getPiece(this.LastMoves[1][0], this.LastMoves[1][1]);
+    const [b4lastPieceX, b4lastPieceY] = this.LastMoves[0];
+
+    if (
+      piece instanceof Pawn &&
+      this.LastMoves &&
+      lastPiece instanceof Pawn &&
+      Math.abs(lastPiece.X - b4lastPieceX) === 2 &&
+      prevX === lastPiece.X &&
+      newY === lastPiece.Y
+    ) {
+      this.matrix[lastPiece.X][lastPiece.Y] = null;
+    }
+  }
+
   MoveListener(x: number, y: number) {
     let SafeSquares = [];
     let piece = this.matrix[x][y];
@@ -259,23 +282,13 @@ export class BoardComponent implements AfterViewInit, OnInit {
         this.SelecetedSquareDirections
       )
     ) {
-      /* let isSafeAfterMove = this.isSquareSafeAfterMove(
+      this.HandleUnusualMoves(
+        attacker,
         AttackerX,
         AttackerY,
         RecieverX,
         RecieverY
       );
-      if (!isSafeAfterMove) {
-        // in here, the selected piece cant move because it exposes the king aka notsafesquareAfterMove func
-        // implement it
-
-        return;
-      } */
-      this.MovesHistory.push([AttackerX, AttackerY], [RecieverX, RecieverY]);
-      this.LastMoves = [
-        [AttackerX, AttackerY],
-        [RecieverX, RecieverY],
-      ];
 
       attacker.X = RecieverX;
       attacker.Y = RecieverY;
@@ -283,8 +296,15 @@ export class BoardComponent implements AfterViewInit, OnInit {
       this.matrix[RecieverX][RecieverY] = attacker;
       this.matrix[AttackerX][AttackerY] = null;
 
+      this.MovesHistory.push([AttackerX, AttackerY], [RecieverX, RecieverY]);
+      this.LastMoves = [
+        [AttackerX, AttackerY],
+        [RecieverX, RecieverY],
+      ];
+      console.log('MovesHistory: ', this.MovesHistory);
       if (attacker instanceof Pawn) {
         attacker.hasMoved = true;
+
         /* attacker.updateDirections(); */
       }
 
