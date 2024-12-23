@@ -100,6 +100,10 @@ export class BoardComponent implements AfterViewInit, OnInit {
   getSafeSquares(x: number, y: number): number[][] {
     let piece: Piece | null = this.getPiece(x, y);
     let SafeSquares: number[][] = [];
+
+    // variable to avoid checking multiple times for en passant
+    var alreadyEnPassant: boolean = false;
+
     if (piece) {
       for (let [dx, dy] of piece.Directions) {
         var [newX, newY] = [x + dx, y + dy];
@@ -114,6 +118,8 @@ export class BoardComponent implements AfterViewInit, OnInit {
           if (piece instanceof Pawn) {
             var target: Piece | null = this.matrix[newX][newY];
 
+            // limit pawn movement after first move
+            if (piece.hasMoved && Math.abs(dx) == 2) continue;
             // handle case where pawn has not moved but an enemy piece is in front of it
             if (
               !piece.hasMoved &&
@@ -123,14 +129,14 @@ export class BoardComponent implements AfterViewInit, OnInit {
               continue;
             }
             // check for en passant by checking if there is a pawn to the left or right
-            if (this.CanEnPassantCapture(piece, x, y)) {
+            if (this.CanEnPassantCapture(piece, x, y) && !alreadyEnPassant) {
+              alreadyEnPassant = true;
               SafeSquares.push([
                 x + (piece.Color === 'White' ? -1 : 1),
                 this.MovesHistory.slice(-1)[0].at(1),
               ]);
             }
-            // limit pawn movement after first move
-            if (piece.hasMoved && Math.abs(dx) == 2) continue;
+
             // check if target position is in the latteral attack directions of pawn and its an enemy color
             if (dy !== 0 && target && target.Color !== piece.Color) {
               SafeSquares.push([newX, newY]);
