@@ -101,22 +101,22 @@ export class BoardComponent implements AfterViewInit, OnInit {
     let piece: Piece | null = this.getPiece(x, y);
     let SafeSquares: number[][] = [];
 
-    // variable to avoid checking multiple times for en passant
+    // variable to avoid checking multiple times for en passant or castle
     var alreadyEnPassant: boolean = false;
-
+    var alreadyCastled: boolean = false;
     if (piece) {
       for (let [dx, dy] of piece.Directions) {
         var [newX, newY] = [x + dx, y + dy];
 
         if (!this.isPositionValid(newX, newY)) continue;
-
+        var target: Piece | null = this.matrix[newX][newY];
         if (
           piece instanceof King ||
           piece instanceof Knight ||
           piece instanceof Pawn
         ) {
           if (piece instanceof Pawn) {
-            var target: Piece | null = this.matrix[newX][newY];
+            /* var target: Piece | null = this.matrix[newX][newY]; */
 
             // limit pawn movement after first move
             if (piece.hasMoved && Math.abs(dx) == 2) continue;
@@ -146,7 +146,23 @@ export class BoardComponent implements AfterViewInit, OnInit {
             else if (!target && Math.abs(dy) !== 1) {
               SafeSquares.push([newX, newY]);
             }
-          } else {
+          } else if (piece instanceof King) {
+            if (this.CanCastle(piece, true) && !alreadyCastled) {
+              alreadyCastled = true;
+              SafeSquares.push([x, 6]);
+            }
+            if (this.CanCastle(piece, false) && !alreadyCastled) {
+              alreadyCastled = true;
+              SafeSquares.push([x, 2]);
+            } else {
+              if (
+                this.isPositionValid(newX, newY) &&
+                ((target && target.Color !== piece.Color) || !target)
+              ) {
+                SafeSquares.push([newX, newY]);
+              }
+            }
+          } else if (piece instanceof Knight) {
             if (this.isPositionValid(newX, newY)) {
               SafeSquares.push([newX, newY]);
             }
@@ -212,6 +228,37 @@ export class BoardComponent implements AfterViewInit, OnInit {
     return this.isSquareSafeAfterMove(pawn, x, y, PawnNewX, PawnNewY);
   }
 
+  CanCastle(king: King, KingSideCastle: boolean): boolean {
+    if (king.hasMoved) return false;
+
+    const kingX = king.Color === 'White' ? 7 : 0;
+    const kingY = 4;
+    const rookX = kingX;
+    const rookY = KingSideCastle ? 0 : 7;
+
+    const rook: Piece | null = this.getPiece(rookX, rookY);
+
+    if (
+      !(rook instanceof Tour) ||
+      rook.hasMoved ||
+      this.isKingInCheck(this.CurrentPlayer)
+    )
+      return false;
+
+    const firstNextY = kingY + (KingSideCastle ? 1 : -1);
+    const secondNextY = kingY + (KingSideCastle ? 2 : -2);
+
+    if (this.getPiece(kingX, firstNextY) || this.getPiece(kingX, secondNextY))
+      return false;
+
+    if (!KingSideCastle && this.getPiece(kingX, 1)) return false;
+
+    return (
+      this.isSquareSafeAfterMove(king, kingX, kingY, kingX, firstNextY) &&
+      this.isSquareSafeAfterMove(king, kingX, kingY, kingX, secondNextY)
+    );
+  }
+
   HandleUnusualMoves(
     piece: Piece,
     prevX: number,
@@ -232,6 +279,20 @@ export class BoardComponent implements AfterViewInit, OnInit {
       newY === lastPiece.Y
     ) {
       this.matrix[lastPiece.X][lastPiece.Y] = null;
+    }
+    // detect castling by checking if king moved two squares in direction of rook
+    else if (piece instanceof King && Math.abs(newY - prevY) === 2) {
+      const rookX = prevX;
+      const rookY = newY > prevY ? 7 : 0;
+
+      const rook = this.getPiece(rookX, rookY) as Tour;
+      const rookNewY = newY > prevY ? 5 : 3;
+
+      this.matrix[rookX][rookY] = null;
+      rook.X = rook.X;
+      rook.Y = rookNewY;
+      this.matrix[rookX][rookNewY] = rook;
+      rook.hasMoved = true;
     }
   }
 
@@ -308,7 +369,11 @@ export class BoardComponent implements AfterViewInit, OnInit {
         [RecieverX, RecieverY],
       ];
       console.log('MovesHistory: ', this.MovesHistory);
-      if (attacker instanceof Pawn) {
+      if (
+        attacker instanceof Pawn ||
+        attacker instanceof King ||
+        attacker instanceof Tour
+      ) {
         attacker.hasMoved = true;
 
         /* attacker.updateDirections(); */
