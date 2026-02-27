@@ -1,127 +1,222 @@
-.board{
-    margin-left: auto;
-    margin-right: auto;
-    margin-top: 8%;
-    width: 560px;
-    height: 560px;
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
-    border-radius: 10px;
-    overflow: hidden;
+.board {
+  margin: 8% 5% 0;
+  margin-left: 5%;
+  margin-right: 5%;
+  margin-top: 8%;
+  width: 560px;
+  height: 560px;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  border-radius: 10px;
+  overflow: hidden;
 }
 
-.rotate{
-    transform: rotate(180deg);
+.mid-container {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: center;
 }
 
-.square{
-    height: 70px;
-    width: 70px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    
+.side-panel {
+  position: relative;
+  margin: 60px;
+  display: grid;
+  grid-template-columns: 70px 70px;
+  flex-direction: column;
+  width: 70px;
+  max-height: fit-content;
+  border-radius: 10px;
+}
+#black-panel {
+  position: relative;
+  right: 0;
+  display: grid;
+  grid-template-rows: repeat(8, min-content);
+  grid-auto-flow: column;
+  gap: 5px;
+}
+#white-panel {
+  display: grid;
+  grid-template-rows: repeat(8, min-content);
+  grid-auto-flow: column;
+  gap: 5px;
+}
+.captured-square {
+  border-radius: 10px;
 }
 
-.green-dot{
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    background-color: rgba(20,85,30,.3);
+.captured-black {
+  background-color: #505050;
 }
 
-.row{
-    display:flex;
-    flex-direction: row;
+.captured-white {
+  background-color: #202020;
+}
+.rotate {
+  transform: rotate(180deg);
 }
 
-.green{
-    background-color: #646F40;
+.square {
+  height: 70px;
+  width: 70px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-.black{
-    background-color: #B58863;
+.green-dot {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: rgba(20, 85, 30, 0.3);
 }
 
-.white{
-    background-color: #F0D9B5;
+.row {
+  display: flex;
+  flex-direction: row;
 }
 
-[class="square white green"]{
-    background-color: #646F40;
+.green {
+  background-color: #646f40;
 }
 
-[class="square black green"]{
-    background-color: #646F40;
+.black {
+  background-color: #b58863;
 }
 
-[class="square white red"]{
-    background-color: red;
+.white {
+  background-color: #f0d9b5;
 }
 
-[class="square black red"]{
-    background-color: red;
+[class="square white green"] {
+  background-color: #646f40;
 }
 
-.image{
-    pointer-events: none;
+[class="square black green"] {
+  background-color: #646f40;
 }
 
-.last-move{
-    background-color: rgba(155,199,0,.41);
+[class="square white red"] {
+  background-color: red;
 }
 
-.check{
-    background: radial-gradient(ellipse at center,
-     rgb(255, 0, 0) 0%, 
-     rgb(231, 0, 0) 25%, 
-     rgba(169, 0, 0, 0) 89%, 
-     rgba(158, 0, 0, 0) 100%);
+[class="square black red"] {
+  background-color: red;
 }
 
-[class="square last-move black"]{
-   background-color: rgba(155,199,0,.41);
+.image {
+  pointer-events: none;
 }
-[class="square last-move white"]{
-    background-color: rgba(155,199,0,.41);
- }
 
- .selected{
-    background-color: rgba(20, 85, 30, .5);
- }
- [class="square black last-move red"]{
-    background-color: red;
- }
+.last-move {
+  background-color: rgba(155, 199, 0, 0.41);
+}
 
- [class="square white last-move red"]{
-    background-color: red;
- }
+.check {
+  background: radial-gradient(
+    ellipse at center,
+    rgb(255, 0, 0) 0%,
+    rgb(231, 0, 0) 25%,
+    rgba(169, 0, 0, 0) 89%,
+    rgba(158, 0, 0, 0) 100%
+  );
+}
 
- [class="square white check"]{
-    background-color: #F0D9B5;
- }
+[class="square last-move black"] {
+  background-color: rgba(155, 199, 0, 0.41);
+}
+[class="square last-move white"] {
+  background-color: rgba(155, 199, 0, 0.41);
+}
 
- [class="square black check"]{
-    background-color: #B58863;
- }
+.selected {
+  background-color: rgba(20, 85, 30, 0.5);
+}
+[class="square black last-move red"] {
+  background-color: red;
+}
 
- .players{
-    display: flex;
-    flex-direction: row;
-    border: 1px red solid;
-    width: fit-content;
-    height: auto;
-    margin: 20px;
-    margin-left: auto;
-    margin-right: auto;
- }
+[class="square white last-move red"] {
+  background-color: red;
+}
 
- .player{
-    padding: 10px;
- }
+[class="square white check"] {
+  background-color: #f0d9b5;
+}
 
-.WinMsg{
-    position: relative;
-    text-align: center;
+[class="square black check"] {
+  background-color: #b58863;
+}
+
+.players {
+  display: flex;
+  flex-direction: row;
+  gap: 15px;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  border: 2px solid #444;
+  border-radius: 15px;
+  padding: 20px;
+  width: fit-content;
+  height: auto;
+  margin: 20px auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.player {
+  padding: 15px 30px;
+  border-radius: 10px;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: #888;
+  background-color: #1a1a1a;
+  border: 2px solid #444;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  cursor: default;
+}
+
+.current-player {
+  color: #fff;
+  background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+  border-color: #27ae60;
+  box-shadow:
+    0 0 20px rgba(46, 204, 113, 0.6),
+    inset 0 0 20px rgba(46, 204, 113, 0.2);
+  transform: scale(1.05);
+}
+
+.WinMsg {
+  position: relative;
+  width: 50%;
+  margin: 1% auto;
+  /* transform: translate(-50%, -50%); */
+  text-align: center;
+  z-index: 1000;
+  background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+  padding: 40px 60px;
+  border-radius: 20px;
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.7),
+    0 0 40px rgba(46, 204, 113, 0.6);
+  color: #fff;
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  animation: popIn cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes popIn {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
 }

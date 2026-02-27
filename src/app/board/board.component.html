@@ -1,32 +1,73 @@
-<h2 class="WinMsg" *ngIf="this.CheckMate">Check Mate {{ this.PreviousPlayer }} won</h2>
-<div class="board">
-  <div
-    class="row"
-    *ngFor="let row of this.matrix; index as i"
-    #row
-    id="{{ 'row-' + i.toString() }}"
-  >
+<h2 class="WinMsg" *ngIf="this.CheckMate">
+  Check Mate, {{ this.PreviousPlayer }} won!
+</h2>
+
+<div class="mid-container">
+  <div id="black-panel" class="side-panel">
+    <ng-container *ngFor="let square of this.CapturedPieces">
+      <div
+        class="captured-square captured-black"
+        *ngIf="square?.Color === 'Black'"
+      >
+        <img [src]="square!.icon" alt="piece" />
+      </div>
+    </ng-container>
+  </div>
+
+  <div class="board">
     <div
-      class="square"
-      #box
-      *ngFor="let square of row; index as j"
-      id="{{ 'box-' + i.toString() + j.toString() }}"
-      [ngClass]="{
-        'black': (i + j) % 2 != 0,
-        'white': (i + j) % 2 == 0,
-        'selected':
-          this.SelectedSquare && this.matrix[i][j] === this.SelectedSquare,
-        'last-move': this.isArrayInMatrix([i,j], this.LastMoves),
-        'check': this.isKingInCheck(this.CurrentPlayer) && this.isInstanceOfKing(i,j),
-      }"
-      (click)="Move(i, j)"
+      class="row"
+      *ngFor="let row of this.matrix; index as i"
+      #row
+      id="{{ 'row-' + i.toString() }}"
     >
-      <img *ngIf="square" [src]="square.icon" [alt]="'piece'" class="image" />
+      <div
+        class="square"
+        #box
+        *ngFor="let square of row; index as j"
+        id="{{ 'box-' + i.toString() + j.toString() }}"
+        [ngClass]="{
+          black: (i + j) % 2 != 0,
+          white: (i + j) % 2 == 0,
+          selected:
+            this.SelectedSquare && this.matrix[i][j] === this.SelectedSquare,
+          'last-move': this.isArrayInMatrix([i, j], this.LastMoves),
+          check:
+            this.isKingInCheck(this.CurrentPlayer) &&
+            this.isInstanceOfKing(i, j),
+        }"
+        (click)="Move(i, j)"
+      >
+        <img *ngIf="square" [src]="square.icon" [alt]="'piece'" class="image" />
+      </div>
     </div>
   </div>
-</div>
-<div class="players">
-  <h2 class="player">White</h2>
-  <h2 class="player">Black</h2>
+
+  <div id="white-panel" class="side-panel">
+    <ng-container *ngFor="let square of this.CapturedPieces">
+      <div
+        class="captured-square captured-white"
+        *ngIf="square?.Color === 'White'"
+      >
+        <img [src]="square!.icon" alt="piece" />
+      </div>
+    </ng-container>
+  </div>
 </div>
 
+<div class="players">
+  <h2
+    id="white-player"
+    [ngClass]="{ 'current-player': this.CurrentPlayer === 'White' }"
+    class="player"
+  >
+    White
+  </h2>
+  <h2
+    id="black-player"
+    [ngClass]="{ 'current-player': this.CurrentPlayer === 'Black' }"
+    class="player"
+  >
+    Black
+  </h2>
+</div>

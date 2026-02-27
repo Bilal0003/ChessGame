@@ -45,13 +45,14 @@ export class BoardComponent implements AfterViewInit, OnInit {
   public CheckMate: boolean = false;
   public Check: boolean = false;
   public WinnerMsg: String | undefined;
+  public CapturedPieces: (Piece | null)[] = [];
 
   constructor(
     private renderer: Renderer2,
-    private GameService: GameLogicService
+    private GameService: GameLogicService,
   ) {
     this.matrix = Array.from({ length: this.dim }, () =>
-      Array(this.dim).fill(null)
+      Array(this.dim).fill(null),
     );
   }
 
@@ -193,7 +194,7 @@ export class BoardComponent implements AfterViewInit, OnInit {
         for (let [X, Y] of SafeSquares) {
           if (!this.isSquareSafeAfterMove(piece, x, y, X, Y)) {
             SafeSquares = SafeSquares.filter(
-              (square) => square[0] !== X || square[1] !== Y
+              (square) => square[0] !== X || square[1] !== Y,
             );
           }
         }
@@ -264,7 +265,7 @@ export class BoardComponent implements AfterViewInit, OnInit {
     prevX: number,
     prevY: number,
     newX: number,
-    newY: number
+    newY: number,
   ) {
     if (!this.LastMoves.length) return;
     const lastPiece = this.getPiece(this.LastMoves[1][0], this.LastMoves[1][1]);
@@ -278,6 +279,8 @@ export class BoardComponent implements AfterViewInit, OnInit {
       prevX === lastPiece.X &&
       newY === lastPiece.Y
     ) {
+      //append the captured piece to CapturePieces
+      this.CapturedPieces.push(lastPiece);
       this.matrix[lastPiece.X][lastPiece.Y] = null;
     }
     // detect castling by checking if king moved two squares in direction of rook
@@ -311,7 +314,7 @@ export class BoardComponent implements AfterViewInit, OnInit {
     this.SelectedSquare = piece;
     this.SelecetedSquareDirections = this.getSafeSquares(
       this.SelectedSquare.X,
-      this.SelectedSquare.Y
+      this.SelectedSquare.Y,
     );
 
     this.HighlightPossibleSquares(this.SelecetedSquareDirections);
@@ -332,12 +335,13 @@ export class BoardComponent implements AfterViewInit, OnInit {
     AttackerX: number,
     AttackerY: number,
     RecieverX: number,
-    RecieverY: number
+    RecieverY: number,
   ): void {
     if (!this.SelectedSquare) return;
 
     let attacker = this.SelectedSquare;
     let reciever: Piece | null = this.matrix[RecieverX][RecieverY];
+    // Play move sound if moving to empty piece, capture sound if capturing
     let Audio = reciever === null ? this.PlayMove : this.PlayCapture;
 
     // check if SelectedPiece is attacking oposite color (or empty square) and
@@ -346,7 +350,7 @@ export class BoardComponent implements AfterViewInit, OnInit {
       (reciever?.Color !== this.CurrentPlayer || !reciever) &&
       this.isArrayInMatrix(
         [RecieverX, RecieverY],
-        this.SelecetedSquareDirections
+        this.SelecetedSquareDirections,
       )
     ) {
       this.HandleUnusualMoves(
@@ -354,8 +358,12 @@ export class BoardComponent implements AfterViewInit, OnInit {
         AttackerX,
         AttackerY,
         RecieverX,
-        RecieverY
+        RecieverY,
       );
+
+      //In case of capturing, append the captured piece to CapturePieces before it becomes null.
+      if (reciever)
+        this.CapturedPieces.push(this.getPiece(RecieverX, RecieverY));
 
       attacker.X = RecieverX;
       attacker.Y = RecieverY;
@@ -368,7 +376,7 @@ export class BoardComponent implements AfterViewInit, OnInit {
         [AttackerX, AttackerY],
         [RecieverX, RecieverY],
       ];
-      console.log('MovesHistory: ', this.MovesHistory);
+
       if (
         attacker instanceof Pawn ||
         attacker instanceof King ||
@@ -455,7 +463,7 @@ export class BoardComponent implements AfterViewInit, OnInit {
 
     document
       .querySelectorAll(
-        '[class="square black last-move red"],[class="square white last-move red"]'
+        '[class="square black last-move red"],[class="square white last-move red"]',
       )
       .forEach((element) => {
         element.classList.remove('red');
@@ -467,7 +475,7 @@ export class BoardComponent implements AfterViewInit, OnInit {
     x: number,
     y: number,
     prevX: number,
-    prevY: number
+    prevY: number,
   ): boolean {
     /* let piece: Piece | null = this.SelectedSquare; */
 
