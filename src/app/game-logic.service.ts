@@ -1,11 +1,19 @@
 import { Injectable, Input, Output } from '@angular/core';
 import { Piece } from './pieces/piece';
 import { BoardComponent } from './board/board.component';
+import { Fou } from './pieces/fou';
+import { Queen } from './pieces/queen';
+import { Knight } from './pieces/knight';
+import { Tour } from './pieces/tour';
 
 @Injectable({
   providedIn: 'root',
 })
 export class GameLogicService {
+  @Input() promotedPawn!: Piece | null;
+  @Input() CurrentPlayer!: string;
+  public matrix!: (Piece | null)[][];
+  PromotedTarget: string = '';
   BlackPieces!: {};
   WhitePieces!: {};
   constructor() {}
@@ -34,7 +42,7 @@ export class GameLogicService {
     return matrix.some(
       (subArray) =>
         subArray.length === array.length &&
-        subArray.every((value, index) => value === array[index])
+        subArray.every((value, index) => value === array[index]),
     );
   }
 
@@ -59,5 +67,24 @@ export class GameLogicService {
 
   getPiece(element: any): HTMLElement {
     return element.srcElement;
+  }
+
+  setPawnTo(
+    target: string,
+    PromotedPawn: Piece | null,
+    matrix: (Piece | null)[][],
+  ) {
+    this.promotedPawn = PromotedPawn;
+    this.matrix = matrix;
+    this.PromotedTarget = target;
+    let [x, y] = [this.promotedPawn!.X, this.promotedPawn!.Y];
+    const classes = { Fou, Queen, Knight, Tour };
+    const temp = new classes[this.PromotedTarget as keyof typeof classes](
+      x,
+      y,
+      this.promotedPawn!.Color,
+    );
+
+    this.matrix[x][y] = temp;
   }
 }

@@ -22,11 +22,12 @@ import { last, pipe, timeInterval } from 'rxjs';
 import { ControlContainer } from '@angular/forms';
 import { ThisReceiver } from '@angular/compiler';
 import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
+import { PromotionComponent } from '../promotion/promotion.component';
 
 @Component({
   selector: 'app-board',
   standalone: true,
-  imports: [NgFor, NgClass, NgIf],
+  imports: [NgFor, NgClass, NgIf, PromotionComponent],
   templateUrl: './board.component.html',
   styleUrl: './board.component.css',
 })
@@ -46,6 +47,8 @@ export class BoardComponent implements AfterViewInit, OnInit {
   public Check: boolean = false;
   public WinnerMsg: String | undefined;
   public CapturedPieces: (Piece | null)[] = [];
+  public PromotedPawn!: Piece | null;
+  public canPromote: boolean = false;
 
   constructor(
     private renderer: Renderer2,
@@ -70,8 +73,6 @@ export class BoardComponent implements AfterViewInit, OnInit {
 
   ngOnInit(): void {
     this.InitializeBoard();
-
-    /* this.matrix[5][5] = new Pawn(5, 5, 'Black'); */
   }
 
   isArrayInMatrix(array: number[], matrix: [][]): boolean {
@@ -331,12 +332,12 @@ export class BoardComponent implements AfterViewInit, OnInit {
   }
 
   // the sole purpose of this function is to make a move
-  MoveMaker(
+  async MoveMaker(
     AttackerX: number,
     AttackerY: number,
     RecieverX: number,
     RecieverY: number,
-  ): void {
+  ): Promise<void> {
     if (!this.SelectedSquare) return;
 
     let attacker = this.SelectedSquare;
@@ -385,6 +386,9 @@ export class BoardComponent implements AfterViewInit, OnInit {
         attacker.hasMoved = true;
 
         /* attacker.updateDirections(); */
+      }
+      if (attacker instanceof Pawn && (attacker.X == 0 || attacker.X == 7)) {
+        await this.handlePromotion(attacker.X, attacker.Y);
       }
 
       Audio();
@@ -691,6 +695,27 @@ export class BoardComponent implements AfterViewInit, OnInit {
       this.matrix[i][j] = new Knight(i, j, Color);
     } else if (i == 7 && j == 7) {
       this.matrix[i][j] = new Tour(i, j, Color);
+    }
+  }
+
+  handlePromotion(x: number, y: number): Promise<void> {
+    return new Promise((resolve) => {
+      this.PromotedPawn = this.getPiece(x, y);
+      this.canPromote = true;
+
+      const resolvePromotion = () => {
+        this.canPromote = false;
+        resolve();
+      };
+      // this allows to store the callback resolvePromotion (on the component instance)
+      // so it can later be triggered
+      (this as any).resumeAfterPromote = resolvePromotion;
+    });
+  }
+
+  onPromoted() {
+    if ((this as any).resumeAfterPromote) {
+      (this as any).resumeAfterPromote();
     }
   }
 }

@@ -71,3 +71,11 @@
     Black
   </h2>
 </div>
+
+<app-promotion
+  [CurrentPlayer]="CurrentPlayer"
+  [PromotedPawn]="PromotedPawn"
+  [matrix]="matrix"
+  (promoted)="onPromoted()"
+  *ngIf="this.canPromote"
+></app-promotion>

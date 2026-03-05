@@ -1,0 +1,14 @@
+<div class="dialog-container">
+  <div class="dialog">
+    <h1>Promotion</h1>
+    <div class="tableau">
+      <div
+        class="square"
+        *ngFor="let square of pawnReplacemenets"
+        (click)="setTarget(square.constructor.name)"
+      >
+        <img [src]="square.icon" alt="piece" />
+      </div>
+    </div>
+  </div>
+</div>
