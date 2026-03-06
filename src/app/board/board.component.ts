@@ -48,6 +48,7 @@ export class BoardComponent implements AfterViewInit, OnInit {
   public PromotedPawn!: Piece | null;
   public canPromote: boolean = false;
   public isStaleMate: boolean = false;
+  public fiftyMoveDrawCounter: number = 0;
 
   constructor(
     private renderer: Renderer2,
@@ -71,29 +72,7 @@ export class BoardComponent implements AfterViewInit, OnInit {
   }
 
   ngOnInit(): void {
-    /* this.InitializeBoard(); */
-    const almostStalemateBoard = [
-      [null, null, null, null, null, new Queen(0, 5, 'White'), null, null],
-      [
-        null,
-        null,
-        null,
-        null,
-        null,
-        new King(1, 5, 'White'),
-        null,
-        new King(1, 7, 'Black'),
-      ],
-      [null, null, null, null, null, null, null, null],
-      [null, null, null, null, null, null, null, null],
-      [null, null, null, null, null, null, null, null],
-      [null, null, null, null, null, null, null, null],
-      [null, null, null, null, null, null, null, null],
-      [null, null, null, null, null, null, null, null],
-    ];
-
-    this.matrix = almostStalemateBoard;
-    this.CurrentPlayer = 'White';
+    this.InitializeBoard();
   }
 
   isArrayInMatrix(array: number[], matrix: [][]): boolean {
@@ -343,7 +322,7 @@ export class BoardComponent implements AfterViewInit, OnInit {
   }
 
   Move(x: number, y: number): void {
-    if (this.CheckMate) return;
+    if (this.isGameOver()) return;
     this.MoveListener(x, y);
 
     if (this.SelectedSquare) {
@@ -384,9 +363,11 @@ export class BoardComponent implements AfterViewInit, OnInit {
       );
 
       //In case of capturing, append the captured piece to CapturePieces before it becomes null.
-      if (reciever)
+      //and reset the fifty move draw counter
+      if (reciever) {
         this.CapturedPieces.push(this.getPiece(RecieverX, RecieverY));
-
+        this.fiftyMoveDrawCounter = 0;
+      }
       attacker.X = RecieverX;
       attacker.Y = RecieverY;
 
@@ -404,6 +385,7 @@ export class BoardComponent implements AfterViewInit, OnInit {
         attacker instanceof King ||
         attacker instanceof Tour
       ) {
+        if (attacker instanceof Pawn) this.fiftyMoveDrawCounter = 0;
         attacker.hasMoved = true;
 
         /* attacker.updateDirections(); */
@@ -418,6 +400,7 @@ export class BoardComponent implements AfterViewInit, OnInit {
       /* this.CheckMate = this.isCheckMate(this.CurrentPlayer); */
 
       this.CurrentPlayer = this.CurrentPlayer == 'Black' ? 'White' : 'Black';
+      this.fiftyMoveDrawCounter += 1;
       this.SelectedSquare = null;
       this.SelecetedSquareDirections = [];
 
@@ -744,5 +727,11 @@ export class BoardComponent implements AfterViewInit, OnInit {
     if ((this as any).resumeAfterPromote) {
       (this as any).resumeAfterPromote();
     }
+  }
+
+  isGameOver(): boolean {
+    return (
+      this.CheckMate || this.isStaleMate || this.fiftyMoveDrawCounter === 50
+    );
   }
 }

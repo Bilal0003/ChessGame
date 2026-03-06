@@ -1,6 +1,9 @@
-<h2 class="WinMsg" *ngIf="this.CheckMate || this.isStaleMate">
+<h2 class="WinMsg" *ngIf="isGameOver()">
   <p *ngIf="this.CheckMate">Check Mate, {{ this.PreviousPlayer }} won!</p>
   <p *ngIf="this.isStaleMate">StaleMate, match is a draw</p>
+  <p *ngIf="this.fiftyMoveDrawCounter === 50">
+    Match draw due to 50-moves rule
+  </p>
 </h2>
 
 <div class="mid-container">
