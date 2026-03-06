@@ -42,13 +42,12 @@ export class BoardComponent implements AfterViewInit, OnInit {
   public SelecetedSquareDirections!: any[];
   public MovesHistory: any[] = [];
   public LastMoves: any[] = [];
-  public CantMove: boolean = false;
   public CheckMate: boolean = false;
-  public Check: boolean = false;
   public WinnerMsg: String | undefined;
   public CapturedPieces: (Piece | null)[] = [];
   public PromotedPawn!: Piece | null;
   public canPromote: boolean = false;
+  public isStaleMate: boolean = false;
 
   constructor(
     private renderer: Renderer2,
@@ -72,7 +71,29 @@ export class BoardComponent implements AfterViewInit, OnInit {
   }
 
   ngOnInit(): void {
-    this.InitializeBoard();
+    /* this.InitializeBoard(); */
+    const almostStalemateBoard = [
+      [null, null, null, null, null, new Queen(0, 5, 'White'), null, null],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        new King(1, 5, 'White'),
+        null,
+        new King(1, 7, 'Black'),
+      ],
+      [null, null, null, null, null, null, null, null],
+      [null, null, null, null, null, null, null, null],
+      [null, null, null, null, null, null, null, null],
+      [null, null, null, null, null, null, null, null],
+      [null, null, null, null, null, null, null, null],
+      [null, null, null, null, null, null, null, null],
+    ];
+
+    this.matrix = almostStalemateBoard;
+    this.CurrentPlayer = 'White';
   }
 
   isArrayInMatrix(array: number[], matrix: [][]): boolean {
@@ -564,10 +585,11 @@ export class BoardComponent implements AfterViewInit, OnInit {
   }
 
   isCheckMate(color: string): boolean {
-    // travres all current player piecies, get all the safe squares, if player has no safe squares then checkmate.
+    // travrese all current player pieces, get all the safe squares,
+    // if player has no safe squares and if king is in check then checkmate .
     for (let i = 0; i < this.dim; i++) {
       for (let j = 0; j < this.dim; j++) {
-        let piece: Piece | null = this.matrix[i][j];
+        let piece: Piece | null = this.getPiece(i, j);
         // travese only allied pieces
         if (!piece || piece.Color !== color) continue;
         const pieceSafeSquares = this.getSafeSquares(i, j);
@@ -575,6 +597,11 @@ export class BoardComponent implements AfterViewInit, OnInit {
       }
     }
     this.PreviousPlayer = this.CurrentPlayer === 'White' ? 'Black' : 'White';
+    // if the previous loop ends, and king is not in check, then stalemate
+    if (!this.isKingInCheck(this.CurrentPlayer)) {
+      this.isStaleMate = true;
+      return false;
+    }
     return true;
   }
 

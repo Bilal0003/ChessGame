@@ -1,5 +1,6 @@
-<h2 class="WinMsg" *ngIf="this.CheckMate">
-  Check Mate, {{ this.PreviousPlayer }} won!
+<h2 class="WinMsg" *ngIf="this.CheckMate || this.isStaleMate">
+  <p *ngIf="this.CheckMate">Check Mate, {{ this.PreviousPlayer }} won!</p>
+  <p *ngIf="this.isStaleMate">StaleMate, match is a draw</p>
 </h2>
 
 <div class="mid-container">
